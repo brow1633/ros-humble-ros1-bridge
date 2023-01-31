@@ -1,13 +1,22 @@
 FROM ubuntu:jammy
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update -y &&\
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+RUN apt update && apt install locales && \
+    locale-gen en_US en_US.UTF-8 && \
+    update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+
+ENV LANG=en_US.UTF-8
+
+RUN ln -snf /usr/share/zoneinfo/$CONTAINER_TIMEZONE /etc/localtime && echo $CONTAINER_TIMEZONE > /etc/timezone
+RUN apt-get update && apt-get install -y tzdata
+
+RUN apt-get update -y &&\
+    apt-get install -y \
         curl gnupg lsb-release &&\
     curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
         -o /usr/share/keyrings/ros-archive-keyring.gpg &&\
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu jammy main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null &&\
-    DEBIAN_FRONTEND=noninteractive apt-get update -y &&\
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    apt-get update -y &&\
+    apt-get install -y \
       build-essential \
       cmake \
       git \
@@ -27,15 +36,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update -y &&\
       python3-pytest-rerunfailures \
       python3-rosdep2 \
       python3-setuptools \
-      locales \
       wget
 
 RUN python3 -m pip install -U colcon-common-extensions vcstool
-
-RUN locale-gen en_US en_US.UTF-8 &&\
-    update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-
-ENV LANG=en_US.UTF-8
 
 RUN mkdir -p /ros2_humble/src
 WORKDIR /ros2_humble
@@ -47,10 +50,10 @@ RUN rosdep install --from-paths src --ignore-src -y --rosdistro humble \
 RUN colcon build --symlink-install
 
 RUN rm /etc/apt/sources.list.d/ros2.list &&\
-    DEBIAN_FRONTEND=noninteractive apt-get update -y &&\
-    DEBIAN_FRONTEND=noninteractive apt remove -y \
+    apt-get update -y &&\
+    apt remove -y \
         python3-catkin-pkg python3-catkin-pkg-modules &&\
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    apt-get install -y \
         ros-core-dev
 
 RUN mkdir -p /ros1_bridge/src
