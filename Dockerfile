@@ -58,7 +58,7 @@ RUN rm /etc/apt/sources.list.d/ros2.list &&\
 
 RUN mkdir -p /ros1_bridge/src
 WORKDIR /ros1_bridge
-RUN git clone https://github.com/ros2/ros1_bridge
+RUN git clone https://github.com/ros2/ros1_bridge src/
 RUN /bin/bash -c ". /ros2_humble/install/local_setup.bash &&\
                   colcon build"
 
